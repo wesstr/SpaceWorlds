@@ -5,12 +5,14 @@ using UnityEngine;
 public class Spawner : MonoBehaviour {
 
     public GameObject[] m_plantes;
-    public Vector3 m_move;
+    public float m_moveSpeed;
+    public float m_rotationSpeed;
     public Camera m_Camera;
     public float m_SpawnDistance;
     public float m_timeToDestory;
     public int m_toSpawn;
-    public int m_spawnDelay;
+    public float m_spawnDelay;
+    public float m_distanceBetweenWorlds;
     
 
     private Rigidbody m_rigidbody;
@@ -28,15 +30,16 @@ public class Spawner : MonoBehaviour {
         m_topRight = m_Camera.ViewportToWorldPoint(new Vector3(1, 1, m_Camera.nearClipPlane + m_SpawnDistance));
         m_bottomLeft = m_Camera.ViewportToWorldPoint(new Vector3(0, 0, m_Camera.nearClipPlane + m_SpawnDistance));
         m_bottomRight = m_Camera.ViewportToWorldPoint(new Vector3(1, 0, m_Camera.nearClipPlane + m_SpawnDistance));
-        //Debug.Log(m_topLeft);
     }
 
     private void FixedUpdate()
     {
         if (m_toSpawn != m_spawned)
         {
-            StartCoroutine(SpawnDelayLeft());
-            StartCoroutine(SpawnDelayRight());
+            StartCoroutine(SpawnDelayLeft(m_spawnDelay));
+            StartCoroutine(SpawnDelayRight(m_spawnDelay));
+            StartCoroutine(SpawnDelayTop(m_spawnDelay));
+            StartCoroutine(SpawnDelayBottom(m_spawnDelay));
             m_spawned++;
         }
     }
@@ -45,7 +48,7 @@ public class Spawner : MonoBehaviour {
     {
         float randomPoint;
         randomPoint = Random.Range(m_bottomLeft.y, m_topLeft.y);
-        return new Vector3(m_topLeft.x + m_bottomLeft.x, randomPoint, m_bottomLeft.z);
+        return new Vector3(m_topLeft.x + m_bottomLeft.x, randomPoint + m_distanceBetweenWorlds, m_SpawnDistance);
     }
 
     private Vector3 WhereToSpawnRight()
@@ -53,46 +56,85 @@ public class Spawner : MonoBehaviour {
         float randomPoint;
         Vector3 spawnPoint;
         randomPoint = Random.Range(m_bottomRight.y, m_topRight.y);
-        spawnPoint = new Vector3(m_bottomRight.x + m_topRight.x, randomPoint, m_SpawnDistance);
-        Debug.Log(spawnPoint);
+        spawnPoint = new Vector3(m_bottomRight.x + m_topRight.x, randomPoint + m_distanceBetweenWorlds, m_SpawnDistance);
         return spawnPoint;
     }
 
-    IEnumerator SpawnDelayRight()
+    private Vector3 WhereToSpawnBottom()
+    {
+        float randomPoint;
+        Vector3 spawnPoint;
+        randomPoint = Random.Range(m_bottomLeft.x, m_bottomRight.x);
+        spawnPoint = new Vector3(randomPoint + m_distanceBetweenWorlds, m_bottomRight.y + m_bottomLeft.y, m_SpawnDistance);
+        return spawnPoint;
+    }
+
+    private Vector3 WhereToSpawnTop()
+    {
+        float randomPoint;
+        Vector3 spawnPoint;
+        randomPoint = Random.Range(m_topLeft.x, m_topRight.x);
+        spawnPoint = new Vector3(randomPoint + m_distanceBetweenWorlds, m_topRight.y + m_topLeft.y , m_SpawnDistance);
+        return spawnPoint;
+    }
+
+    IEnumerator SpawnDelayRight(float waitTime)
     {
         GameObject justSpawned;
         int randomnum;
-        Vector3 move = new Vector3(-50f, 0f, 0f);
-        yield return new WaitForSeconds(Random.Range(0f, 10f));
-        Debug.Log("Spawn Right");
-        randomnum = Random.Range(0, 1);
-        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnRight(), new Quaternion());
-        m_rigidbody = justSpawned.GetComponent<Rigidbody>();
-        m_rigidbody.AddRelativeForce(move);
-        m_rigidbody.AddRelativeTorque(move);
+        Vector3 move = new Vector3(-m_moveSpeed, 0f, 0f);
+        Rigidbody rgbdy;
+        yield return new WaitForSeconds(Random.Range(0f, waitTime));
+        randomnum = Random.Range(0, m_plantes.Length);
+        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnRight(), Quaternion.identity);
+        rgbdy = justSpawned.GetComponent<Rigidbody>();
+        rgbdy.velocity = move;
+        move.x += m_rotationSpeed;
+        rgbdy.AddRelativeTorque(move);
     }
 
-    IEnumerator SpawnDelayLeft()
+    IEnumerator SpawnDelayLeft(float waitTime)
     {
         GameObject justSpawned;
         int randomnum;
-        Vector3 move = new Vector3(50f, 0f, 0f);
-        yield return new WaitForSeconds(Random.Range(0f,10f));
-        Debug.Log("Spawn Left");
-        Debug.Log(WhereToSpawnLeft());
-        randomnum = Random.Range(0, 1);
-        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnLeft(), new Quaternion());
-        m_rigidbody = justSpawned.GetComponent<Rigidbody>();
-        m_rigidbody.AddRelativeForce(move);
-        m_rigidbody.AddRelativeTorque(move);
+        Vector3 move = new Vector3(m_moveSpeed, 0f, 0f);
+        Rigidbody rgbdy;
+        yield return new WaitForSeconds(Random.Range(0f, waitTime));
+        randomnum = Random.Range(0, m_plantes.Length);
+        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnLeft(), Quaternion.identity);
+        rgbdy = justSpawned.GetComponent<Rigidbody>();
+        rgbdy.velocity = move;
+        move.x += m_rotationSpeed;
+        rgbdy.AddRelativeTorque(move);
     }
 
-    void OnDrawGizmosSelected()
+    IEnumerator SpawnDelayBottom(float waitTime)
     {
-       
-        Vector3 p = m_Camera.ViewportToWorldPoint(new Vector3(1, 1, m_Camera.nearClipPlane + 50));
-        Debug.Log(p);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(p, 0.5F);
+        GameObject justSpawned;
+        int randomnum;
+        Vector3 move = new Vector3(0f, m_moveSpeed, 0f);
+        Rigidbody rgbdy;
+        yield return new WaitForSeconds(Random.Range(0f, waitTime));
+        randomnum = Random.Range(0, m_plantes.Length);
+        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnBottom(), Quaternion.identity);
+        rgbdy = justSpawned.GetComponent<Rigidbody>();
+        rgbdy.velocity = move;
+        move.x += m_rotationSpeed;
+        rgbdy.AddRelativeTorque(move);
+    }
+
+    IEnumerator SpawnDelayTop(float waitTime)
+    {
+        GameObject justSpawned;
+        int randomnum;
+        Vector3 move = new Vector3(0f, -m_moveSpeed, 0f);
+        Rigidbody rgbdy;
+        yield return new WaitForSeconds(Random.Range(0f, waitTime));
+        randomnum = Random.Range(0, m_plantes.Length);
+        justSpawned = Instantiate(m_plantes[randomnum], WhereToSpawnTop(), Quaternion.identity);
+        rgbdy = justSpawned.GetComponent<Rigidbody>();
+        rgbdy.velocity = move;
+        move.x += m_rotationSpeed;
+        rgbdy.AddRelativeTorque(move);
     }
 }
