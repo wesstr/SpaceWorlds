@@ -8,11 +8,14 @@ public class LaserGun : MonoBehaviour {
     public float damage = 1;
     public LayerMask whatToHit;
     public Transform BulletTrailPrefab;
-    //public AudioClip slimeFire;
+    public float m_MoveSpeed;
+    public float m_DestoryAfter;
 
     private float timeToFire = 0;
-    Transform firePoint;
-    // Use this for initialization
+    private Transform firePoint;
+    private Rigidbody m_LaserRigibdoy;
+
+
     void Awake()
     {
         firePoint = this.transform;
@@ -22,19 +25,19 @@ public class LaserGun : MonoBehaviour {
         }
     }
 
-    // Update is called once per frame
+
     void Update()
     {
         if (fireRate == 0)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Shoot();
             }
         }
         else
         {
-            if (Input.GetKey(KeyCode.Space) && Time.time > timeToFire)
+            if (Input.GetKey(KeyCode.Mouse0) && Time.time > timeToFire)
             {
                 timeToFire = Time.time + 1 / fireRate;
                 Shoot();
@@ -42,14 +45,11 @@ public class LaserGun : MonoBehaviour {
         }
     }
 
+
     void Shoot()
     {
-        Instantiate(BulletTrailPrefab, transform.position , Quaternion.identity);
-    }
-
-    void Effect()
-    {
-        //BulletTrailPrefab.gameObject.GetComponent<MoveTrail>().damage = damage;
-        Instantiate(BulletTrailPrefab, firePoint.position, Quaternion.Euler(firePoint.eulerAngles.x, firePoint.eulerAngles.y, 90 + firePoint.eulerAngles.z));
+        m_LaserRigibdoy = Instantiate(BulletTrailPrefab, transform.position , transform.rotation).GetComponent<Rigidbody>();
+        m_LaserRigibdoy.velocity = transform.forward * m_MoveSpeed;
+        Destroy(m_LaserRigibdoy.gameObject, m_DestoryAfter);
     }
 }
