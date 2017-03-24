@@ -10,31 +10,41 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour {
 
     public GameObject m_EndGameMenu;
-    public MainMenuController m_MainMenuController;
     public GameObject m_PlayerGameObject;
+    public GameObject m_PlayerDeathEffects;
 
     public static int m_Score;
     public static int m_Health;
     public static string m_PlayerName;
     public int m_LastScore;
+    public bool m_IsDead;
 
     private ScoreData m_ScoreData;
 
 	void Awake () {
+        m_IsDead = false;
         m_Score = 0;
         m_Health = 100;
         m_ScoreData = LoadUserData();
         if (m_ScoreData == null)
             Debug.Log("Failed to load score data!");
 	}
+
+    void Start()
+    {
+        m_ScoreData = LoadUserData();
+        if (m_ScoreData == null)
+            Debug.Log("Failed to load score data!");
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		if (m_Health <= 0)
+		if (m_Health <= 0 && !m_IsDead)
         {
             Destroy(m_PlayerGameObject);
+            Instantiate(m_PlayerDeathEffects, m_PlayerGameObject.transform.position, Quaternion.identity);
             m_EndGameMenu.SetActive(true);
-            //Time.timeScale = 0;
+            m_IsDead = true;
         }
 	}
 
@@ -52,9 +62,8 @@ public class GameManager : MonoBehaviour {
     {
         m_PlayerName = name;
         BinaryFormatter bf = new BinaryFormatter();
-        FileStream file = File.Open(Application.persistentDataPath + "/playerScores.dat", FileMode.Append);
+        FileStream file = File.Open(Application.persistentDataPath + "/playerScores.dat", FileMode.Open);
         Debug.Log(Application.persistentDataPath);
-        //ScoreData data = new ScoreData();
         m_ScoreData.names.Insert(0, m_PlayerName);
         m_ScoreData.scores.Insert(0, m_Score);
         Debug.Log(m_ScoreData.scores.Count);
@@ -71,9 +80,6 @@ public class GameManager : MonoBehaviour {
             FileStream file = File.Open(Application.persistentDataPath + "/playerScores.dat", FileMode.Open);
             ScoreData data = (ScoreData) bf.Deserialize(file);
             file.Close();
-
-            //m_LastScore = data.scores[0];
-            //m_PlayerName = data.names[0];
             return data;
         }
         else

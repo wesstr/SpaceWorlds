@@ -6,11 +6,13 @@ public class WorldHealth : MonoBehaviour {
 
     public float m_WorldHealth;
     public GameObject m_ExplosionPrefab;
+    public GameObject m_WorldExplosionPrefab;
     public AudioClip m_WorldLaserHit;
 
     private bool m_IsDestroyed;
     private AudioSource m_AudioSource;
     private int m_SoundsAtOnce = 0;
+    private GameObject m_JustSpawned;
 	
 
 	void Start () {
@@ -23,6 +25,8 @@ public class WorldHealth : MonoBehaviour {
 	void Update () {
 		if (m_WorldHealth <= 0 && !m_IsDestroyed)
         {
+            Destroy(Instantiate(m_WorldExplosionPrefab.gameObject, transform.position, Quaternion.identity),5);
+
             Destroy(this.gameObject);
             GameManager.m_Score += 1;
             m_IsDestroyed = true;
@@ -34,7 +38,7 @@ public class WorldHealth : MonoBehaviour {
     {
         if (other.tag == "Laser")
         {
-            Destroy(Instantiate(m_ExplosionPrefab, other.transform.position, other.transform.rotation), 1f);
+            Destroy(Instantiate(m_ExplosionPrefab, other.transform.position, other.transform.rotation), 2f);
             m_AudioSource.clip = m_WorldLaserHit;
             if (!m_AudioSource.isPlaying && (m_SoundsAtOnce <= 3))
             {

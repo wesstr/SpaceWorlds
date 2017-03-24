@@ -6,12 +6,16 @@ using UnityEngine.SceneManagement;
 
 public class EndGameController : MonoBehaviour {
 
+    public Button m_SaveButton;
+
     private InputField m_NameInput;
     private GameManager m_GameManager;
+    private Text m_SaveButtonText;
 
 	
 	void Start () {
         m_NameInput = GetComponentInChildren<InputField>();
+        m_SaveButtonText = m_SaveButton.gameObject.GetComponentInChildren<Text>();
         m_GameManager = GameObject.Find("_GameManager").GetComponent<GameManager>();
         this.gameObject.SetActive(false);
 	}
